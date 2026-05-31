@@ -4,6 +4,33 @@ set -e
 
 shopt -s extglob
 
+install_llvm_mingw() {
+# LLVM MinGW Setup
+    LLVM_MINGW_URL="https://github.com/v3kt0r-87/Clang-Stable/releases/download/clang-stable-mingw/clang-stable-mingw.zip"
+    LLVM_MINGW_PATH="$(pwd)/clang-stable-mingw"
+
+    echo "Checking for LLVM MinGW..."
+
+    if [ ! -d "$LLVM_MINGW_PATH" ]; then
+
+        echo "LLVM MinGW not found! Downloading..."
+
+        wget -O clang-stable-mingw.zip "$LLVM_MINGW_URL"
+
+        unzip clang-stable-mingw.zip -d "$LLVM_MINGW_PATH"
+        rm -rf clang-stable-mingw.zip
+
+        echo "LLVM MinGW installed successfully!"
+
+    else
+        echo "LLVM MinGW is already installed."
+    fi
+
+    export PATH="$(pwd)/clang-stable-mingw/mingw/bin:$PATH"
+}
+
+install_llvm_mingw
+
 if [ -z "$1" ] || [ -z "$2" ]; then
   echo "Usage: $0 version destdir [--no-package] [--dev-build]"
   exit 1
@@ -66,7 +93,7 @@ function build_arch {
     opt_strip=--strip
   fi
 
-  meson setup --cross-file "$DXVK_SRC_DIR/$crossfile$1.txt" \
+  meson setup --cross-file "$DXVK_SRC_DIR/$crossfile$1.txt" --native-file "native.txt" \
         --buildtype "release"                               \
         --prefix "$DXVK_BUILD_DIR"                          \
         $opt_strip                                          \
